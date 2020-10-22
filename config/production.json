@@ -1,0 +1,5 @@
+{
+    "mongoURI": "mongodb+srv://admin-fabio:test123@cluster0.ie0of.mongodb.net/direct2uDB?retryWrites=true&w=majority",
+    "mongoLocal": "mongodb://localhost:27017/direct2uDB",
+    "jwtSecret": "mysecrettoken"
+}
