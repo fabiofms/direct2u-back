@@ -1,5 +1,7 @@
 {
     "mongoURI": "mongodb+srv://admin-fabio:test123@cluster0.ie0of.mongodb.net/direct2uDB?retryWrites=true&w=majority",
     "mongoLocal": "mongodb://localhost:27017/direct2uDB",
-    "jwtSecret": "mysecrettoken"
+    "jwtSecret": "mysecrettoken",
+    "mailjetPubKey": "febfdd3f64f5ed2191c35159c7e0abc3",
+    "mailjetSecKey": "b14de3318d79c5aaab87ad41d3aaad26"
 }
