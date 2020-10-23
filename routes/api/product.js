@@ -118,9 +118,9 @@ async (req, res) => {
             return res.status(400).json({errors: [{ msg: 'Product belongs to other user'}]})
         }
         parsedPrice = parseFloat(price.replace(',','.'))
-        await Product.findByIdAndUpdate(req.params.id, { name, parsedPrice })
+        var p = await Product.findByIdAndUpdate(req.params.id, { name, price: parsedPrice })
 
-        res.json(product);
+        res.json(p);
     } catch (err) {
         console.error(err.message);
         res.status(500).json({errors: [{msg: 'Server Error'}]});
