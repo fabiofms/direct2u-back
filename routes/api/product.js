@@ -30,11 +30,9 @@ async (req, res) => {
         const { name, price } = req.body
         var product = await Product.findOne({name, user: req.user.id})
         if(product) {
-            return res.status(400).send({msg: 'Product already existis'});
+            return res.status(400).json({errors: [{msg: 'Product already existis'}]});
         }
-        console.log(price)
         parsedPrice = parseFloat(price.replace(',','.'))
-        console.log(parsedPrice)
         const productFields = {
             name,
             price: parsedPrice,
@@ -46,7 +44,7 @@ async (req, res) => {
         res.json(p);
     } catch (err) {
         console.error(err.message);
-        res.status(500).json([{msg: 'Server Error'}]);
+        res.status(500).json({errors: [{msg: 'Server Error'}]});
     }
 }
 
@@ -62,7 +60,7 @@ router.get("/", auth, async (req, res) => {
         res.json(products);
     } catch (err) {
         console.error(err.message);
-        res.status(500).json({msg: 'Server error'});
+        res.status(500).json({errors: [{msg: 'Server error'}]});
     }
 })
 
@@ -74,19 +72,18 @@ router.get("/:id", auth, async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
         if(!product) {
-            return res.status(404).json({ msg: 'Product not found'})
+            return res.status(404).json({errors: [{ msg: 'Product not found'}]})
         }
         if(product.user.toString() !== req.user.id){
-            console.log('other user')
-            return res.status(400).json({ msg: 'Product belongs to other user'})
+            return res.status(400).json({errors: [{ msg: 'Product belongs to other user'}]})
         }
         res.json(product);
     } catch (err) {
         console.error(err.message);
         if(err.kind === 'ObjectId') {
-            return res.status(404).json({ msg: 'Product not found'})
+            return res.status(404).json({errors: [{ msg: 'Product not found'}]})
         }
-        res.status(500).send('Server Error');
+        res.status(500).json({errors: [{msg: 'Server Error'}]});
     }
 })
 
@@ -110,31 +107,30 @@ async (req, res) => {
         return res.status(400).json({errors: errors.array()})
     }
 
-    
     try {
         const { name, price } = req.body
         var product = await Product.findById(req.params.id)
         if(!product) {
-            return res.status(400).send({msg: 'Product does not exist'});
+            return res.status(400).json({errors: [{msg: 'Product does not exist'}]});
         }
 
         if(product.user.toString() !== req.user.id){
-            return res.status(400).json({ msg: 'Product belongs to other user'})
+            return res.status(400).json({errors: [{ msg: 'Product belongs to other user'}]})
         }
-
-        await Product.findByIdAndUpdate(req.params.id, { name, price })
+        parsedPrice = parseFloat(price.replace(',','.'))
+        await Product.findByIdAndUpdate(req.params.id, { name, parsedPrice })
 
         res.json(product);
     } catch (err) {
         console.error(err.message);
-        res.status(500).json([{msg: 'Server Error'}]);
+        res.status(500).json({errors: [{msg: 'Server Error'}]});
     }
 }
 
 )
 
 // @route   DELETE api/product/:id
-// @desc    Delete a post
+// @desc    Delete a product
 // @access  Private
 
 router.delete("/:id", auth, async (req, res) => {
@@ -142,11 +138,11 @@ router.delete("/:id", auth, async (req, res) => {
         const product = await Product.findById(req.params.id);
 
         if(!product) {
-            return res.status(404).json({ msg: 'Product not found'})
+            return res.status(404).json({errors: [{ msg: 'Product not found'}]})
         }
         // Check product
         if(product.user.toString() !== req.user.id) {
-            return res.status(401).json({ msg: 'User not authorized' });
+            return res.status(401).json({errors: [{ msg: 'User not authorized' }]});
         }
 
         await product.remove();
@@ -154,7 +150,7 @@ router.delete("/:id", auth, async (req, res) => {
         res.json({ msg: 'Product removed' });
     } catch (err) {
         console.error(err.message);
-        res.status(500).json({ msg: 'Server Error'});
+        res.status(500).json({errors: [{ msg: 'Server Error'}]});
     }
 })
 

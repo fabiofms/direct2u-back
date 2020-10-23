@@ -17,12 +17,8 @@ const saleSchema = new mongoose.Schema({
         }
     ],
     client: {
-        type: String
-        //type: mongoose.Schema.Types.ObjectId,
-        //ref: 'client'
-    },
-    email: {
-        type: String
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'client'
     },
     date: {
         type: Date,

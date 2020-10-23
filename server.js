@@ -24,6 +24,7 @@ app.use('/api/user', require(__dirname + "/routes/api/user"))
 app.use('/api/auth', require(__dirname + "/routes/api/auth"))
 app.use('/api/product', require(__dirname + '/routes/api/product'))
 app.use('/api/sale', require (__dirname + "/routes/api/sale"))
+app.use('/api/client', require (__dirname + "/routes/api/client"))
 
 // Serve Static assets in production
 if(process.env.NODE_ENV === 'production') {
