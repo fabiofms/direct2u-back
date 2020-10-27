@@ -6,11 +6,11 @@ const clientSchema = new mongoose.Schema({
         ref: 'user'
     },
     name: {
-        type: String,
-        required: true
+        type: String
     },
     email: {
-        type: String
+        type: String,
+        unique: false
     },
     tel: {
         type: String

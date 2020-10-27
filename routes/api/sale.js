@@ -36,7 +36,7 @@ async (req, res) => {
         const client = clientDB.name
         const email = clientDB.email
         console.log(email, client)
-        // Calculate price and compose email message
+        // Calculate price
 
         let price = 0
         let product
@@ -65,7 +65,7 @@ async (req, res) => {
 )
 
 // @route   GET api/sale/email/:id
-// @desc    Create a sale
+// @desc    Send email to client
 // @access  Private
 
 router.get("/email/:id", [
@@ -83,10 +83,13 @@ async (req, res) => {
         const clientDB = await Client.findById(clientId);
         const client = clientDB.name
         const email = clientDB.email
+        if(!email) {
+            return res.status(404).json({errors: [{msg: 'No client email registered'}]})
+        }
         console.log(email, client)
         // Calculate price and compose email message
 
-        let message = '<h3>Quantidade Produto  Valor Unitário  Valor Total'
+        let message = '<h3>Quantidade Produto  Valor Unitário  Valor Total</h3>'
         let product
         let line
         for(let i=0; i < products.length; i++){
@@ -96,7 +99,7 @@ async (req, res) => {
             message = message + line
         }
         message += `<p>Preço total: ${price.toFixed(2)}</p>`
-        message = "<h2>Olá " + client + ". Segue o seu orçamento solicitado.</h2>" + message
+        message = "<h2>Olá, " + client + ". Segue o seu orçamento solicitado.</h2>" + message
 
         // Send email
         const mailjetPubKey = config.get("mailjetPubKey")
@@ -117,6 +120,87 @@ async (req, res) => {
                 "To": [
                     {
                     "Email": email,
+                    "Name": client
+                    }
+                ],
+                "Subject": "Orçamento Aloés",
+                "TextPart": "Olá " + client + ". Segue o seu orçamento solicitado",
+                "HTMLPart": message,
+                "CustomID": "AppGettingStartedTest"
+                }
+            ]
+            })
+        request
+            .then((result) => {
+                console.log(result.body)
+            })
+            .catch((err) => {
+                console.log(err.statusCode)
+            })
+
+
+        res.json({message:['Success']});
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({errors: [{msg: 'Server Error'}]});
+    }
+}
+
+)
+
+// @route   GET api/sale/email/:id
+// @desc    Send email to client
+// @access  Private
+
+router.get("/email/me/:id", [
+    auth,
+],
+async (req, res) => {
+    try {
+        const sale = await Sale.findById(req.params.id);
+        if(!sale) {
+            return res.status(404).json({errors: [{ msg: 'Sale not found'}]})
+        }
+        const { client: clientId, products, price } = sale
+
+        // Get client information
+        const clientDB = await Client.findById(clientId);
+        const client = clientDB.name
+        const email = clientDB.email
+        console.log(email, client)
+        // Calculate price and compose email message
+
+        let message = '<h3>Quantidade Produto  Valor Unitário  Valor Total</h3>'
+        let product
+        let line
+        for(let i=0; i < products.length; i++){
+            product = await Product.findById(products[i].product)
+            line = `<p>${products[i].quantity} ${product.name} ${(product.price).toFixed(2)}\
+             ${(product.price*parseInt(products[i].quantity)).toFixed(2)}</p>`
+            message = message + line
+        }
+        message += `<p>Preço total: ${price.toFixed(2)}</p>`
+        message = "<h2>Olá, " + client + ". Segue o seu orçamento solicitado.</h2>" + message
+
+        // Send email
+        const mailjetPubKey = config.get("mailjetPubKey")
+        const mailjetSecKey = config.get("mailjetSecKey")
+        const user = await User.findById(req.user.id)
+        
+        const mailjet = require ('node-mailjet')
+            .connect(mailjetPubKey, mailjetSecKey)
+        const request = mailjet
+            .post("send", {'version': 'v3.1'})
+            .request({
+            "Messages":[
+                {
+                "From": {
+                    "Email": user.email,
+                    "Name": user.name
+                },
+                "To": [
+                    {
+                    "Email": user.email,
                     "Name": client
                     }
                 ],
@@ -175,6 +259,7 @@ router.get("/:id", auth, async (req, res) => {
     } catch (err) {
         console.error(err.message);
         if(err.kind === 'ObjectId') {
+            console.log(email, client)
             return res.status(404).json({errors: [{ msg: 'Sale not found'}]})
         }
         res.status(500).json({errors: [{msg: 'Server error'}]});
@@ -217,21 +302,14 @@ router.put("/:id", [
             const client = clientDB.name
             const email = clientDB.email
             console.log(email, client)
-            // Calculate price and compose email message
+            // Calculate price
 
             let price = 0
-            let message = '<h3>Quantidade Produto  Valor Unitário  Valor Total'
             let product
-            let line
             for(let i=0; i < products.length; i++){
                 product = await Product.findById(products[i].product)
-                line = `<p>${products[i].quantity} ${product.name} ${(product.price).toFixed(2)}\
-                ${(product.price*parseInt(products[i].quantity)).toFixed(2)}</p>`
-                message = message + line
                 price += product.price*parseInt(products[i].quantity)
             }
-            message += `<p>Preço total: ${price.toFixed(2)}</p>`
-            message = "<h2>Olá " + client + ". Segue o seu orçamento solicitado.</h2>" + message
 
             // Create new sale
             const saleFields = {
@@ -240,46 +318,6 @@ router.put("/:id", [
                 price
             }
             const s = await Sale.findByIdAndUpdate(req.params.id, saleFields)
-            // sale = new Sale(saleFields)
-            // const s = await sale.save()
-
-            // Send email
-            const mailjetPubKey = config.get("mailjetPubKey")
-            const mailjetSecKey = config.get("mailjetSecKey")
-            const user = await User.findById(req.user.id)
-            
-            const mailjet = require ('node-mailjet')
-                .connect(mailjetPubKey, mailjetSecKey)
-            const request = mailjet
-                .post("send", {'version': 'v3.1'})
-                .request({
-                "Messages":[
-                    {
-                    "From": {
-                        "Email": user.email,
-                        "Name": user.name
-                    },
-                    "To": [
-                        {
-                        "Email": email,
-                        "Name": client
-                        }
-                    ],
-                    "Subject": "Orçamento Aloés",
-                    "TextPart": "Olá " + client + ". Segue o seu orçamento solicitado",
-                    "HTMLPart": message,
-                    "CustomID": "AppGettingStartedTest"
-                    }
-                ]
-                })
-            request
-                .then((result) => {
-                    console.log(result.body)
-                })
-                .catch((err) => {
-                    console.log(err.statusCode)
-                })
-
 
             res.json(s);
         } catch (err) {

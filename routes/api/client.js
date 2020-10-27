@@ -15,8 +15,8 @@ router.post("/", [
         check('name', 'Fill the client name.')
             .not()
             .isEmpty(),
-        check('email', 'Enter a valid email')
-            .isEmail(),
+        // check('email', 'Enter a valid email')
+        //     .isEmail(),
         
     ]
 ],
@@ -96,8 +96,8 @@ router.put("/:id", [
         check('name', 'Fill the client name.')
             .not()
             .isEmpty(),
-        check('email', 'Enter a valid email')
-            .isEmail(),
+        // check('email', 'Enter a valid email')
+        //     .isEmail(),
     ]
 ],
 async (req, res) => {
