@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const {check, validationResult} = require('express-validator')
 const auth = require('../../middleware/auth');
-const Product = require('../../models/Product')
+const Product = require('../../models/Product');
+const Sale = require('../../models/Sale');
 
 // @route   POST api/product
 // @desc    Create a product
@@ -144,6 +145,25 @@ router.delete("/:id", auth, async (req, res) => {
         if(product.user.toString() !== req.user.id) {
             return res.status(401).json({errors: [{ msg: 'User not authorized' }]});
         }
+        // Remove associated sale
+        
+        const sales = await Sale.find();
+        sales.map(async (sale) => {
+            // Iterate over each sale
+            for (let index = 0; index < sale.products.length; index++){
+                // Check if product is in sale
+                if (sale.products[index].product.toString() === req.params.id){
+                    // If only product in sale, delete it
+                    if (sale.products.length === 1) {
+                        await sale.remove()
+                    // If not alone, remove it from sale
+                    } else {
+                        sale.products.splice(index, 1)
+                        await sale.save()
+                    }
+                }
+            }
+        })
 
         await product.remove();
 

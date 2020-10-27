@@ -3,6 +3,7 @@ const router = express.Router();
 const {check, validationResult} = require('express-validator')
 const auth = require('../../middleware/auth');
 const Client = require('../../models/Client')
+const Sale = require('../../models/Sale');
 
 // @route   POST api/client
 // @desc    Create a client
@@ -144,6 +145,11 @@ router.delete("/:id", auth, async (req, res) => {
             return res.status(401).json({errors: [{ msg: 'User not authorized' }]});
         }
 
+        // Remove associated sale
+        
+        const sales = await Sale.find();
+        var clientSales = sales.filter(sale => sale.client.toString() === req.params.id)
+        clientSales.map(async (sale) => await sale.remove())
         await client.remove();
 
         res.json({ msg: 'Client removed' });

@@ -31,7 +31,6 @@ async (req, res) => {
     
     try {
         const { client: clientId, products } = req.body
-
         // Get client information
         const clientDB = await Client.findById(clientId);
         const client = clientDB.name
